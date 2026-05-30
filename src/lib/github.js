@@ -11,7 +11,7 @@ const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${
 const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DATA_PATH}`;
 
 // GitHub Token（仅用于写入操作）
-const TOKEN = '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';
+const TOKEN = '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';
 
 /**
  * 从 GitHub 读取 items（公开访问，无需认证）
