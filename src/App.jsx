@@ -11,7 +11,7 @@ export default function App() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const {
-    items, loading, fetchItems, isAdmin,
+    items, loading, error, fetchItems, isAdmin,
     addItem, addInquiry, addReply,
     markSold, deleteItem,
     adminLogin, adminLogout,
@@ -234,6 +234,15 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* 连接状态 */}
+      {!loading && (
+        <div className={`fixed bottom-4 right-4 px-4 py-2 rounded-full text-xs font-medium shadow-lg z-40 ${
+          error ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+        }`}>
+          {error ? '⚠️ 云端未连接' : '🟢 云端同步中'}
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-gray-100 mt-16 py-8 text-center text-sm text-gray-400">

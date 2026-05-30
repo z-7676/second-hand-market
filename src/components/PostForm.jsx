@@ -27,11 +27,29 @@ export default function PostForm({ onSubmit, onCancel }) {
     const files = Array.from(e.target.files);
     files.forEach((file) => {
       if (!file.type.startsWith('image/')) return;
+
+      // 压缩图片后再转 base64
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const dataUrl = ev.target.result;
-        setPreviews((prev) => [...prev, dataUrl]);
-        setForm((prev) => ({ ...prev, images: [...prev.images, dataUrl] }));
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxW = 600; // 最大宽度
+          let w = img.width;
+          let h = img.height;
+          if (w > maxW) { h = (h * maxW) / w; w = maxW; }
+
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // 用 JPEG 格式压缩到 0.6 质量，大幅减小体积
+          const compressed = canvas.toDataURL('image/jpeg', 0.6);
+          setPreviews((prev) => [...prev, compressed]);
+          setForm((prev) => ({ ...prev, images: [...prev.images, compressed] }));
+        };
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     });
