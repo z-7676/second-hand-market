@@ -236,11 +236,10 @@ export default function App() {
       </main>
 
       {/* 连接状态 */}
-      {!loading && (
-        <div className={`fixed bottom-4 right-4 px-4 py-2 rounded-full text-xs font-medium shadow-lg z-40 ${
-          error ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-        }`}>
-          {error ? '⚠️ 云端未连接' : '🟢 云端同步中'}
+      {!loading && error && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 shadow-lg z-40">
+          <p className="font-medium mb-1">⚠️ 云端未连接</p>
+          <p className="text-red-400 break-words">{error}</p>
         </div>
       )}
 
