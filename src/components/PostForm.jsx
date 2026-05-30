@@ -57,26 +57,32 @@ export default function PostForm({ onSubmit, onCancel }) {
     return Object.keys(errs).length === 0;
   };
 
+  const [submitted, setSubmitted] = useState(false);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    onSubmit({
-      title: form.title.trim(),
-      description: form.description.trim(),
-      price: Number(form.price),
-      category: form.category,
-      condition: form.condition,
-      images: form.images,
-      seller: {
-        name: form.sellerName.trim(),
-        contact: form.sellerContact.trim(),
-        avatar: '👤',
-      },
-    });
+    setSubmitted(true);
 
-    setForm(INITIAL_FORM);
-    setPreviews([]);
+    setTimeout(() => {
+      onSubmit({
+        title: form.title.trim(),
+        description: form.description.trim(),
+        price: Number(form.price),
+        category: form.category,
+        condition: form.condition,
+        images: form.images,
+        seller: {
+          name: form.sellerName.trim(),
+          contact: form.sellerContact.trim(),
+          avatar: '👤',
+        },
+      });
+      setForm(INITIAL_FORM);
+      setPreviews([]);
+      setSubmitted(false);
+    }, 500);
   };
 
   const inputClass = (field) =>
@@ -85,7 +91,19 @@ export default function PostForm({ onSubmit, onCancel }) {
     }`;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto animate-slide-up">
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto animate-slide-up relative">
+      {/* 提交成功遮罩 */}
+      {submitted && (
+        <div className="absolute inset-0 z-10 bg-white/90 rounded-2xl flex flex-col items-center justify-center animate-fade-in">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-lg font-bold text-gray-900">发布成功！</p>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
         <h2 className="text-2xl font-bold text-gray-900 mb-8">发布闲置物品</h2>
 

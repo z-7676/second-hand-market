@@ -84,10 +84,13 @@ export default function App() {
           </>
         )}
 
-        {/* Post Page */}
+        {/* Post Modal */}
         {page === 'post' && (
-          <div>
-            <PostForm onSubmit={handlePost} onCancel={() => setPage('home')} />
+          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setPage('home')} />
+            <div className="relative w-full max-w-2xl my-8">
+              <PostForm onSubmit={handlePost} onCancel={() => setPage('home')} />
+            </div>
           </div>
         )}
 
