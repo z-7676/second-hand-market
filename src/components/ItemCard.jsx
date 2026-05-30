@@ -44,7 +44,7 @@ export default function ItemCard({ item, onClick }) {
           <span className="text-xl font-bold text-gray-900">
             {formatPrice(item.price)}
           </span>
-          <span className="text-xs text-gray-400">{timeAgo(item.createdAt)}</span>
+          <span className="text-xs text-gray-400">{timeAgo(new Date(item.created_at).getTime())}</span>
         </div>
         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
           <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">

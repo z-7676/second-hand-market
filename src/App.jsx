@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Header from './components/Header';
 import ItemGrid from './components/ItemGrid';
 import PostForm from './components/PostForm';
@@ -11,11 +11,16 @@ export default function App() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const {
-    items, isAdmin,
+    items, loading, fetchItems, isAdmin,
     addItem, addInquiry, addReply,
     markSold, deleteItem,
     adminLogin, adminLogout,
   } = useStore();
+
+  // 页面启动时从云端拉数据
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   const selectedItem = useMemo(
     () => items.find((item) => item.id === selectedItemId),
@@ -35,8 +40,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handlePost = (itemData) => {
-    addItem(itemData);
+  const handlePost = async (itemData) => {
+    await addItem(itemData);
     setPage('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -76,11 +81,18 @@ export default function App() {
               </p>
             </div>
 
-            <ItemGrid
-              items={items}
-              onSelectItem={handleSelectItem}
-              searchQuery={searchQuery}
-            />
+            {loading ? (
+              <div className="text-center py-20">
+                <div className="inline-block w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-400">加载中...</p>
+              </div>
+            ) : (
+              <ItemGrid
+                items={items}
+                onSelectItem={handleSelectItem}
+                searchQuery={searchQuery}
+              />
+            )}
           </>
         )}
 
@@ -150,7 +162,7 @@ export default function App() {
                           {selectedItem.category}
                         </span>
                         <span>{selectedItem.condition}</span>
-                        <span>{timeAgo(selectedItem.createdAt)}</span>
+                        <span>{timeAgo(new Date(selectedItem.created_at).getTime())}</span>
                       </div>
                     </div>
                     <span className="text-2xl sm:text-3xl font-bold text-gray-900 shrink-0">
