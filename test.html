@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Supabase 连接测试</title></head>
+<body style="font-family: monospace; padding: 20px;">
+<h2>Supabase 连接测试</h2>
+<div id="result">测试中...</div>
+<script>
+(async () => {
+  const el = document.getElementById('result');
+  const url = 'https://jvxdtsltxlcdiisxdbgj.supabase.co/rest/v1/items?select=count';
+  const key = 'sb_publishable_QCtKFtDv6NY4TH8vAl9b6A_wfkmb4MU';
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'apikey': key,
+        'Authorization': 'Bearer ' + key,
+      }
+    });
+    const data = await res.json();
+    el.innerHTML = `<p style="color:green">✅ 连接成功！</p>
+      <p>状态码: ${res.status}</p>
+      <p>数据: ${JSON.stringify(data)}</p>`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:red">❌ 连接失败</p>
+      <p>错误: ${e.message}</p>
+      <p>类型: ${e.name}</p>`;
+  }
+})();
+</script>
+</body>
+</html>
