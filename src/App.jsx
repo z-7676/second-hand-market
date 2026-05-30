@@ -10,7 +10,12 @@ export default function App() {
   const [page, setPage] = useState('home');
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const { items, addItem, addInquiry, addReply, markSold, deleteItem } = useStore();
+  const {
+    items, isAdmin,
+    addItem, addInquiry, addReply,
+    markSold, deleteItem,
+    adminLogin, adminLogout,
+  } = useStore();
 
   const selectedItem = useMemo(
     () => items.find((item) => item.id === selectedItemId),
@@ -52,6 +57,9 @@ export default function App() {
         currentPage={page}
         onSearch={setSearchQuery}
         searchQuery={searchQuery}
+        isAdmin={isAdmin}
+        onAdminLogin={adminLogin}
+        onAdminLogout={adminLogout}
       />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -122,19 +130,19 @@ export default function App() {
                 {selectedItem.images && selectedItem.images.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto">
                     {selectedItem.images.map((img, i) => (
-                      <img key={i} src={img} alt="" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                      <img key={i} src={img} alt="" className="w-20 h-20 rounded-xl object-cover border border-gray-200 shrink-0" />
                     ))}
                   </div>
                 )}
 
                 {/* Title & Description */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm animate-slide-up">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm animate-slide-up">
+                  <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">
                         {selectedItem.title}
                       </h1>
-                      <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
                         <span className="px-2.5 py-0.5 bg-gray-100 rounded-full text-xs">
                           {selectedItem.category}
                         </span>
@@ -142,14 +150,14 @@ export default function App() {
                         <span>{timeAgo(selectedItem.createdAt)}</span>
                       </div>
                     </div>
-                    <span className="text-3xl font-bold text-gray-900">
+                    <span className="text-2xl sm:text-3xl font-bold text-gray-900 shrink-0">
                       {formatPrice(selectedItem.price)}
                     </span>
                   </div>
 
                   <div className="border-t border-gray-50 pt-4">
                     <h3 className="text-sm font-medium text-gray-500 mb-2">物品描述</h3>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
                       {selectedItem.description}
                     </p>
                   </div>
@@ -161,14 +169,14 @@ export default function App() {
                       <span className="text-2xl">{selectedItem.seller.avatar}</span>
                       <div>
                         <p className="font-medium text-gray-900">{selectedItem.seller.name}</p>
-                        <p className="text-sm text-gray-500">联系方式：{selectedItem.seller.contact}</p>
+                        <p className="text-sm text-gray-500 break-words">联系方式：{selectedItem.seller.contact}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  {selectedItem.status !== 'sold' && (
-                    <div className="border-t border-gray-50 pt-4 mt-4 flex gap-3">
+                  {/* Action Buttons — 仅管理员可见 */}
+                  {isAdmin && selectedItem.status !== 'sold' && (
+                    <div className="border-t border-gray-50 pt-4 mt-4 flex flex-wrap gap-3">
                       <button
                         onClick={() => markSold(selectedItem.id)}
                         className="px-5 py-2.5 border border-gray-300 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
@@ -186,6 +194,14 @@ export default function App() {
                       >
                         删除物品
                       </button>
+                    </div>
+                  )}
+
+                  {selectedItem.status === 'sold' && (
+                    <div className="border-t border-gray-50 pt-4 mt-4">
+                      <span className="inline-block px-4 py-1.5 bg-gray-200 text-gray-500 rounded-full text-sm font-medium">
+                        已售出
+                      </span>
                     </div>
                   )}
                 </div>
