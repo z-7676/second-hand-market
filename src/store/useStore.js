@@ -89,7 +89,7 @@ const useStore = create((set, get) => ({
       }
     } catch (e) {}
 
-    set({ items: merged, loading: false });
+    set({ items: merged, loading: false, error: null });
   },
 
   // ========== 管理员 ==========
