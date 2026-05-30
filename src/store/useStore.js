@@ -13,6 +13,8 @@ const useStore = create((set, get) => ({
   fetchItems: async () => {
     set({ loading: true });
 
+    console.log('🔄 正在从 Supabase 拉取数据...');
+
     // 1. 先从 Supabase 拉数据
     const { data, error } = await supabase
       .from('items')
@@ -20,10 +22,25 @@ const useStore = create((set, get) => ({
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('获取物品失败:', error);
-      set({ loading: false });
+      console.error('❌ Supabase 获取失败:', error.message, error);
+      // 回退：尝试读 localStorage
+      const oldData = localStorage.getItem('second-hand-market');
+      if (oldData) {
+        try {
+          const parsed = JSON.parse(oldData);
+          const oldItems = parsed?.state?.items || [];
+          if (oldItems.length > 0) {
+            console.log('⚠️ 使用本地缓存数据');
+            set({ items: oldItems, loading: false });
+            return;
+          }
+        } catch (e) {}
+      }
+      set({ items: [], loading: false, error: error.message });
       return;
     }
+
+    console.log(`✅ Supabase 返回 ${data ? data.length : 0} 条数据`);
 
     // 2. 如果 Supabase 为空，尝试从旧 localStorage 迁移数据
     if (!data || data.length === 0) {
@@ -33,15 +50,16 @@ const useStore = create((set, get) => ({
           const parsed = JSON.parse(oldData);
           const oldItems = parsed?.state?.items || [];
           if (oldItems.length > 0) {
-            console.log(`正在迁移 ${oldItems.length} 件旧数据到云端...`);
-            // 转换字段名 createdAt -> created_at
+            console.log(`📦 正在迁移 ${oldItems.length} 件旧数据到云端...`);
             const migrated = oldItems.map((item) => ({
               ...item,
-              created_at: item.created_at || new Date(item.createdAt).toISOString(),
+              created_at: item.created_at || new Date(item.createdAt || Date.now()).toISOString(),
             }));
             const { error: insertError } = await supabase.from('items').insert(migrated);
-            if (!insertError) {
-              // 迁移成功，清除旧数据，重新拉取
+            if (insertError) {
+              console.error('❌ 迁移失败:', insertError.message);
+            } else {
+              console.log('✅ 迁移成功');
               localStorage.removeItem('second-hand-market');
               const { data: freshData } = await supabase
                 .from('items')
@@ -57,7 +75,21 @@ const useStore = create((set, get) => ({
       }
     }
 
-    set({ items: data || [], loading: false });
+    // 3. 合并本地备份数据
+    let merged = data || [];
+    try {
+      const backup = JSON.parse(localStorage.getItem('s2m_backup') || '[]');
+      if (backup.length > 0) {
+        const existingIds = new Set(merged.map((i) => i.id));
+        const newBackupItems = backup.filter((i) => !existingIds.has(i.id));
+        if (newBackupItems.length > 0) {
+          merged = [...newBackupItems, ...merged];
+          console.log(`📦 合并了 ${newBackupItems.length} 条本地备份数据`);
+        }
+      }
+    } catch (e) {}
+
+    set({ items: merged, loading: false });
   },
 
   // ========== 管理员 ==========
@@ -91,11 +123,17 @@ const useStore = create((set, get) => ({
 
     const { error } = await supabase.from('items').insert(newItem);
     if (error) {
-      console.error('发布失败:', error);
-      return false;
+      console.error('❌ Supabase 发布失败:', error.message);
+      // 失败时保存到 localStorage 作为备份
+      try {
+        const backup = JSON.parse(localStorage.getItem('s2m_backup') || '[]');
+        backup.unshift(newItem);
+        localStorage.setItem('s2m_backup', JSON.stringify(backup));
+        console.log('⚠️ 已保存到本地备份');
+      } catch (e) {}
     }
 
-    // 刷新列表
+    // 更新本地列表
     set((state) => ({ items: [newItem, ...state.items] }));
     return true;
   },
